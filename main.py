@@ -1,7 +1,5 @@
 import sys
 from mainwindow import Ui_MainWindow
-from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import QTimer
 import os
 import subprocess
@@ -17,15 +15,15 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Здесь прописываем событие нажатия на кнопку
+        # connections
         self.ui.changeButton.clicked.connect(self.MyFunction)
         self.ui.sleepSlider.valueChanged.connect(self.refreshTime)
 
+        #getting parametres from system
         powerDictionary = self.getParametres()
         self.sleepTimeOld = powerDictionary["Standby"]
-        self.suspendTimeOld = powerDictionary["Suspend"]
-        self.Off = powerDictionary["Off"]
 
+        #getting parametres of battery
         batteryDictionary = self.getBatteryinfo()
         self.ui.batteryNameLabel.setText("Battery name: " + batteryDictionary["native-path"])
         self.ui.statusValueLabel.setText(batteryDictionary["state"])
@@ -35,14 +33,15 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.sleepDelayLabel.setText(str(0))
 
 
-    # Пока пустая функция которая выполняется
-    # при нажатии на кнопку
+    #button_on_click action
     def MyFunction(self):
         self.changeSleep(str(self.ui.sleepSlider.value()))
 
+    #action of refrehing time label form slider
     def refreshTime(self, p_int):
         self.ui.sleepDelayLabel.setText(str(p_int))
 
+    #action of refreshing all window
     def refresh(self):
         batteryDictionary = self.getBatteryinfo()
         self.ui.batteryNameLabel.setText("Battery name: " + batteryDictionary["native-path"])
@@ -56,6 +55,7 @@ class MyWin(QtWidgets.QMainWindow):
         sleepDict = self.getParametres()
         self.ui.sleepLabel.setText("Время до выключения: " + sleepDict["Standby"])
 
+    #getting parametres of system (sleeping delay)
     def getParametres(self):
         subprocess.call("xset -q | grep Standby: > " + os.getcwd() + "/log.txt", shell=True)
         # open temp file "/log.txt"
@@ -64,6 +64,7 @@ class MyWin(QtWidgets.QMainWindow):
         logfile.close()
         return powerDictionary
 
+    #getting parametres of battery
     def getBatteryinfo(self):
         subprocess.call("upower -i $(upower -e | grep 'BAT') > " + os.getcwd() + "/log.txt", shell=True)
         # open temp file "/log.txt"
@@ -84,9 +85,11 @@ class MyWin(QtWidgets.QMainWindow):
         logfile.close()
         return batteryDictionary
 
+    #action for changing sleep delay
     def changeSleep(self, delay):
         subprocess.call("xset dpms " + delay, shell=True)
 
+    #close action
     def closeEvent(self, event):
         self.changeSleep(self.sleepTimeOld)
         event.accept()
@@ -96,9 +99,9 @@ if __name__=="__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MyWin()
 
-    # call linux shell command (hdparm) with output in file "/log.txt" for getting all status of HDD
-
     window.show()
+    
+    #creating timer for refresh main window
     timer = QTimer()
     timer.timeout.connect(window.refresh)
     timer.start(1000)

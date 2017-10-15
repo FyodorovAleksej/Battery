@@ -1,0 +1,1 @@
+  Standby: 40    Suspend: 0    Off: 0
